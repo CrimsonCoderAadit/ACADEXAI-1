@@ -1,0 +1,269 @@
+@import "tailwindcss";
+
+:root {
+  /* Professional Dark Theme Colors */
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --secondary: #6366f1;
+  --accent: #8b5cf6;
+  --gray-950: #0a0a0a;
+  --gray-900: #111827;
+  --gray-800: #1f2937;
+  --gray-700: #374151;
+  --gray-600: #4b5563;
+  --gray-500: #6b7280;
+  --gray-400: #9ca3af;
+  --gray-300: #d1d5db;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+
+/* Subtle Glow Effects for Buttons */
+.btn-glow {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3),
+              0 0 40px rgba(59, 130, 246, 0.15);
+}
+
+.btn-glow:focus {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4),
+              0 0 40px rgba(59, 130, 246, 0.2);
+  outline: none;
+}
+
+/* Professional Card Glow on Hover */
+.card-glow {
+  transition: all 0.3s ease-in-out;
+}
+
+.card-glow:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5),
+              0 0 30px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Animated Border Glow - Professional Subtle Effect */
+@keyframes borderGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.1),
+                0 0 25px rgba(59, 130, 246, 0.05),
+                inset 0 0 15px rgba(59, 130, 246, 0.03);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(147, 197, 253, 0.15),
+                0 0 35px rgba(96, 165, 250, 0.08),
+                inset 0 0 20px rgba(59, 130, 246, 0.05);
+  }
+}
+
+.glow-border {
+  position: relative;
+  animation: borderGlow 4s ease-in-out infinite;
+}
+
+/* Animated Outline Glow - Soft Light Effect */
+@keyframes outlineGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1),
+                0 0 20px rgba(59, 130, 246, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(147, 197, 253, 0.2),
+                0 0 30px rgba(96, 165, 250, 0.1);
+  }
+}
+
+.glow-outline {
+  animation: outlineGlow 3s ease-in-out infinite;
+}
+
+/* Pulse Glow - Very Subtle */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.05),
+                0 0 20px rgba(59, 130, 246, 0.03);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(147, 197, 253, 0.1),
+                0 0 30px rgba(96, 165, 250, 0.05);
+  }
+}
+
+.glow-pulse {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+/* Smooth Transitions */
+* {
+  transition-property: color, background-color, border-color, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Link Hover States */
+a {
+  transition: color 0.2s ease;
+}
+
+/* Custom Scrollbar for Dark Theme */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-900);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-700);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-600);
+}
+
+/* ========================================
+   CONTROLLED NEON ACCENTS
+   ======================================== */
+
+/* Neon Color Variables */
+:root {
+  --neon-blue: #3b82f6;
+  --neon-purple: #a855f7;
+  --neon-cyan: #06b6d4;
+  --neon-green: #10b981;
+}
+
+/* ELECTRIC BLUE - Main sections, page containers */
+@keyframes neonPulseBlue {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.15),
+                0 0 20px rgba(59, 130, 246, 0.1),
+                0 0 30px rgba(59, 130, 246, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.25),
+                0 0 30px rgba(59, 130, 246, 0.15),
+                0 0 45px rgba(59, 130, 246, 0.08);
+  }
+}
+
+.neon-glow-blue {
+  animation: neonPulseBlue 4s ease-in-out infinite;
+}
+
+/* SOFT PURPLE - Interactive elements, hover states */
+@keyframes neonPulsePurple {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.15),
+                0 0 20px rgba(168, 85, 247, 0.1),
+                0 0 30px rgba(168, 85, 247, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.25),
+                0 0 30px rgba(168, 85, 247, 0.15),
+                0 0 45px rgba(168, 85, 247, 0.08);
+  }
+}
+
+.neon-glow-purple {
+  animation: neonPulsePurple 3.5s ease-in-out infinite;
+}
+
+/* CYAN - Chat interface, special features */
+@keyframes neonPulseCyan {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.15),
+                0 0 20px rgba(6, 182, 212, 0.1),
+                0 0 30px rgba(6, 182, 212, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.25),
+                0 0 30px rgba(6, 182, 212, 0.15),
+                0 0 45px rgba(6, 182, 212, 0.08);
+  }
+}
+
+.neon-glow-cyan {
+  animation: neonPulseCyan 3s ease-in-out infinite;
+}
+
+/* MUTED GREEN - Success states, safe indicators */
+@keyframes neonPulseGreen {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.15),
+                0 0 20px rgba(16, 185, 129, 0.1),
+                0 0 30px rgba(16, 185, 129, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.25),
+                0 0 30px rgba(16, 185, 129, 0.15),
+                0 0 45px rgba(16, 185, 129, 0.08);
+  }
+}
+
+.neon-glow-green {
+  animation: neonPulseGreen 3s ease-in-out infinite;
+}
+
+/* Neon Border Effects - Static (no animation) */
+.neon-border-blue {
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.1),
+              inset 0 0 10px rgba(59, 130, 246, 0.05);
+}
+
+.neon-border-purple {
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.1),
+              inset 0 0 10px rgba(168, 85, 247, 0.05);
+}
+
+.neon-border-cyan {
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.1),
+              inset 0 0 10px rgba(6, 182, 212, 0.05);
+}
+
+/* Neon Hover Effects - For interactive cards */
+.neon-hover-blue {
+  transition: all 0.3s ease;
+}
+
+.neon-hover-blue:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2),
+              0 0 40px rgba(59, 130, 246, 0.1),
+              inset 0 0 15px rgba(59, 130, 246, 0.05);
+  transform: translateY(-2px);
+}
+
+.neon-hover-purple {
+  transition: all 0.3s ease;
+}
+
+.neon-hover-purple:hover {
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.2),
+              0 0 40px rgba(168, 85, 247, 0.1),
+              inset 0 0 15px rgba(168, 85, 247, 0.05);
+  transform: translateY(-2px);
+}
