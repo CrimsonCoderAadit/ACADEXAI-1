@@ -182,29 +182,8 @@ export default function InitAttendanceForm() {
               {schedule[day].map((block, index) => (
                 <div
                   key={index}
-                  className="bg-gray-700/50 border border-gray-600 rounded-lg p-3 space-y-2"
+                  className="bg-gray-700/50 border border-gray-600 rounded-lg p-3"
                 >
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      placeholder="Subject name"
-                      value={block.subject}
-                      onChange={(e) =>
-                        updateClassBlock(day, index, "subject", e.target.value)
-                      }
-                      className="flex-1 bg-gray-600 border border-gray-500 rounded px-2 py-1.5 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                    <button
-                      onClick={() => removeClassBlock(day, index)}
-                      className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/10 rounded transition-colors"
-                      title="Remove class"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-
                   <div className="flex items-center gap-2">
                     <div className="flex-1 flex items-center gap-2">
                       <label className="text-xs text-gray-400 w-12">Start:</label>
@@ -228,6 +207,15 @@ export default function InitAttendanceForm() {
                         className="flex-1 bg-gray-600 border border-gray-500 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                     </div>
+                    <button
+                      onClick={() => removeClassBlock(day, index)}
+                      className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/10 rounded transition-colors"
+                      title="Remove class"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               ))}

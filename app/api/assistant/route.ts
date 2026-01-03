@@ -43,6 +43,21 @@ Rules:
 - Use your judgment — do not guess randomly
 - Be consistent across the schedule
 - Return the FULL updated schedule
+- CRITICAL: NEVER schedule tasks over blocks marked with "isClass": true - classes are IMMUTABLE and CANNOT BE MOVED
+- If you see tasks with "isClass": true in the current schedule, preserve them EXACTLY as they are
+- Do NOT overlap with class times under any circumstances
+- If the user requests to move, reschedule, or delete a class, you MUST return an error instead of a schedule
+- Classes have fixed times and cannot be changed by scheduling requests
+
+TIME MANAGEMENT RULES:
+- CRITICAL: NO OVERLAPPING TASKS - Every task must have a unique, non-overlapping time slot
+- When inserting a new task into an existing time slot, adjust the surrounding tasks to fill ALL time
+- If a task from 2:00-4:00 exists and user adds a task from 2:00-3:00, the original task should become 3:00-4:00
+- NEVER create tasks with overlapping time ranges (e.g., 2:00-4:00 and 3:00-5:00 is FORBIDDEN)
+- NEVER leave gaps or unscheduled time - if there are gaps, add "Free Time" blocks with priority "low"
+- Ensure all tasks are contiguous and account for all hours in the day
+- When removing or moving tasks, either extend adjacent tasks or add "Free Time" to fill the gap
+- Double-check all time ranges to ensure no two tasks on the same day overlap
 `;
 
 function overlaps(a: any, b: any) {
@@ -192,40 +207,148 @@ USER_REQUEST:
 
 
   const conflicts = [];
+  const classConflicts = [];
+  const movedOrDeletedClasses = [];
+  const internalOverlaps = [];
 
-  
+  for (const day of Object.keys(rawSchedule.days)) {
+  const oldDayBlocks = currentSchedule.days?.[day] ?? [];
+  const newDayBlocks = rawSchedule.days[day] ?? [];
 
+  // Get immutable classes for this day (no classes on weekends)
+  const classBlocks = oldDayBlocks.filter((b: any) => b.isClass);
 
-  for (const day of Object.keys(currentSchedule.days)) {
-    const oldDayBlocks = currentSchedule.days[day] ?? [];
-    const newDayBlocks = rawSchedule.days?.[day] ?? [];
+  // ---------- CHECK IF CLASSES WERE MOVED OR DELETED (only for weekdays) ----------
+  if (day !== "Saturday" && day !== "Sunday") {
+    for (const classBlock of classBlocks) {
+      const classStillExists = newDayBlocks.some((b: any) =>
+        b.isClass &&
+        b.task === classBlock.task &&
+        b.start === classBlock.start &&
+        b.end === classBlock.end
+      );
 
-    for (const oldB of oldDayBlocks) {
-      for (const newB of newDayBlocks) {
-        const oldPriority = oldB.priority ?? "high";
+      if (!classStillExists) {
+        movedOrDeletedClasses.push({
+          day,
+          class: classBlock
+        });
+      }
+    }
 
+    // ---------- CLASS CONFLICT CHECK (only for weekdays) ----------
+    for (const newB of newDayBlocks) {
+      if (newB.isClass) continue;
+
+      for (const classBlock of classBlocks) {
         if (
-          overlaps(oldB, newB) &&
-          oldPriority === "high" &&
-          newB.priority !== "high"
+          overlaps(
+            { start: newB.start, end: newB.end },
+            { start: classBlock.start, end: classBlock.end }
+          )
         ) {
-          conflicts.push({ day, old: oldB, new: newB });
+          classConflicts.push({
+            day,
+            class: classBlock,
+            conflicting: newB,
+          });
         }
       }
     }
   }
 
+  // ---------- INTERNAL OVERLAP CHECK (all days including weekends) ----------
+  for (let i = 0; i < newDayBlocks.length; i++) {
+    for (let j = i + 1; j < newDayBlocks.length; j++) {
+      const blockA = newDayBlocks[i];
+      const blockB = newDayBlocks[j];
+
+      if (overlaps(blockA, blockB)) {
+        internalOverlaps.push({
+          day,
+          task1: blockA.task,
+          time1: `${blockA.start}-${blockA.end}`,
+          task2: blockB.task,
+          time2: `${blockB.start}-${blockB.end}`
+        });
+      }
+    }
+  }
+
+  // ---------- HIGH PRIORITY CONFLICT CHECK (all days) ----------
+  for (const oldB of oldDayBlocks) {
+    for (const newB of newDayBlocks) {
+      const oldPriority = oldB.priority ?? "high";
+
+      // Only check conflicts for non-class tasks
+      if (
+        overlaps(oldB, newB) &&
+        oldPriority === "high" &&
+        !oldB.isClass &&
+        !newB.isClass
+      ) {
+        conflicts.push({ day, old: oldB, new: newB });
+      }
+    }
+  }
+}
 
 
-  if (conflicts.length > 0) {
+  // Check for internal overlaps first (critical error in AI-generated schedule)
+  if (internalOverlaps.length > 0) {
+    const overlapMessages = internalOverlaps.slice(0, 3).map(o =>
+      `${o.task1} (${o.time1}) overlaps with ${o.task2} (${o.time2}) on ${o.day}`
+    ).join("; ");
+
     return NextResponse.json({
-      type: "confirmation",
-      message:
-        "This change replaces a high-priority task with a lower-priority one. Are you sure?",
-      pendingSchedule: rawSchedule,
-      conflicts,
+      type: "chat",
+      reply: `❌ Schedule conflict detected: ${overlapMessages}. Tasks cannot overlap with each other. Please rephrase your request to avoid time conflicts.`,
     });
   }
+
+  // Classes cannot be moved, deleted, or overridden - reject immediately
+  if (movedOrDeletedClasses.length > 0) {
+    const uniqueMoved = Array.from(new Map(
+      movedOrDeletedClasses.map(c => [`${c.day}-${c.class.task}-${c.class.start}`, c])
+    ).values());
+
+    const classNames = uniqueMoved.map(c =>
+      `${c.class.task} (${c.class.start} - ${c.class.end}) on ${c.day}`
+    ).join(", ");
+
+    return NextResponse.json({
+      type: "chat",
+      reply: `❌ Cannot move or delete classes. The following classes cannot be changed: ${classNames}. Classes are immutable and have fixed times. If you need to modify your class schedule, please update it in the courses section.`,
+    });
+  }
+
+  if (classConflicts.length > 0) {
+    const uniqueConflicts = Array.from(new Map(
+      classConflicts.map(c => [`${c.day}-${c.class.task}-${c.class.start}`, c])
+    ).values());
+
+    const classNames = uniqueConflicts.map(c =>
+      `${c.class.task} (${c.class.start} - ${c.class.end}) on ${c.day}`
+    ).join(", ");
+
+    return NextResponse.json({
+      type: "chat",
+      reply: `❌ Cannot schedule tasks during class times. The following classes conflict with your request: ${classNames}. Classes are immutable and cannot be moved or overridden. Please choose a different time slot.`,
+    });
+  }
+
+  if (conflicts.length > 0) {
+  const conflict = conflicts[0];
+
+  return NextResponse.json({
+    type: "confirmation",
+    message: `❌ **${conflict.new.task}** overlaps with a **high-priority task** (${conflict.old.task}, ${conflict.old.start}–${conflict.old.end}).  
+Do you want to replace it anyway?`,
+    pendingSchedule: rawSchedule,
+    conflicts,
+  });
+}
+
 
   return NextResponse.json({
     type: "schedule",

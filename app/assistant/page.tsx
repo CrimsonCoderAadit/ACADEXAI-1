@@ -22,6 +22,8 @@ function normalizeSchedule(schedule: any) {
       start: block.start ?? "",
       end: block.end ?? "",
       priority: block.priority ?? "medium",
+      isClass: block.isClass ?? false, // Preserve isClass property
+      completed: block.completed ?? false, // Preserve completed status
     }));
 
   }
@@ -72,9 +74,9 @@ export default function AssistantPage() {
         await setDoc(ref, userSchedule);
       }
 
-      // Load class schedule and merge
-      const mergedSchedule = await mergeClassSchedule(userSchedule);
-      setSchedule(mergedSchedule);
+      // Set schedule without merging classes initially
+      // Classes will be merged only after AI generates the schedule
+      setSchedule(userSchedule);
     };
 
     loadSchedule();
@@ -154,12 +156,12 @@ export default function AssistantPage() {
     }
   };
 
-  // Delete weekly schedule (user tasks only, keep classes)
+  // Delete weekly schedule (removes all tasks including classes from view)
   const handleDeleteSchedule = async () => {
     if (!user) return;
 
     const confirmed = window.confirm(
-      "Are you sure you want to delete your weekly schedule? This will remove all user-created tasks but keep your class schedule. This action cannot be undone."
+      "Are you sure you want to delete your weekly schedule? This will remove all scheduled tasks from view. Classes will reappear when you generate a new schedule. This action cannot be undone."
     );
 
     if (!confirmed) return;
@@ -185,15 +187,46 @@ export default function AssistantPage() {
       const ref = doc(db, "users", user.uid, "schedule", "weekly");
       await setDoc(ref, emptySchedule);
 
-      // Merge with classes and update local state
-      const mergedSchedule = await mergeClassSchedule(emptySchedule);
-      setSchedule(mergedSchedule);
+      // Set empty schedule (classes will be merged when AI generates new schedule)
+      setSchedule(emptySchedule);
 
     } catch (error) {
       console.error("Error deleting schedule:", error);
       alert("Failed to delete schedule. Please try again.");
     } finally {
       setDeletingSchedule(false);
+    }
+  };
+
+  // Toggle task completion
+  const handleToggleComplete = async (day: string, blockIndex: number) => {
+    if (!user || !schedule) return;
+
+    try {
+      const updatedSchedule = { ...schedule };
+      const block = updatedSchedule.days[day][blockIndex];
+
+      // Don't allow toggling classes
+      if (block.isClass) return;
+
+      // Toggle completion status
+      block.completed = !block.completed;
+
+      // Update local state
+      setSchedule(updatedSchedule);
+
+      // Save to Firebase (only save user tasks, not merged class data)
+      const userSchedule = { ...updatedSchedule };
+      // Remove class blocks before saving
+      Object.keys(userSchedule.days).forEach((dayKey) => {
+        userSchedule.days[dayKey] = userSchedule.days[dayKey].filter((b: any) => !b.isClass);
+      });
+
+      const ref = doc(db, "users", user.uid, "schedule", "weekly");
+      await setDoc(ref, userSchedule);
+
+    } catch (error) {
+      console.error("Error toggling completion:", error);
     }
   };
 
@@ -236,11 +269,15 @@ export default function AssistantPage() {
       setInput("");
 
       if (answer === "yes") {
-        setSchedule(normalizeSchedule(pendingSchedule));
+        const normalizedSchedule = normalizeSchedule(pendingSchedule);
+
+        // Merge with classes before setting
+        const mergedSchedule = await mergeClassSchedule(normalizedSchedule);
+        setSchedule(mergedSchedule);
 
         await setDoc(
           doc(db, "users", user.uid, "schedule", "weekly"),
-          pendingSchedule,
+          normalizedSchedule,
           { merge: true }
         );
 
@@ -313,7 +350,9 @@ export default function AssistantPage() {
         const rawSchedule = JSON.parse(data.reply);
         const normalizedSchedule = normalizeSchedule(rawSchedule);
 
-        setSchedule(normalizedSchedule);
+        // Merge with classes before setting
+        const mergedSchedule = await mergeClassSchedule(normalizedSchedule);
+        setSchedule(mergedSchedule);
 
         await setDoc(
           doc(db, "users", user.uid, "schedule", "weekly"),
@@ -481,7 +520,7 @@ export default function AssistantPage() {
         {/* Schedule Display */}
         {schedule && (
           <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 sm:p-8 shadow-xl">
-            <WeeklySchedule schedule={schedule} onDelete={handleDeleteSchedule} deleting={deletingSchedule} />
+            <WeeklySchedule schedule={schedule} onDelete={handleDeleteSchedule} deleting={deletingSchedule} onToggleComplete={handleToggleComplete} />
           </div>
         )}
       </div>
