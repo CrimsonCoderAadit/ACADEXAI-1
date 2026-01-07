@@ -9,13 +9,15 @@ export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const navLinks = [
+    const navLinks = [
     { href: '/', label: 'Home', icon: '🏠' },
     { href: '/classes', label: 'Classes', icon: '📚' },
     { href: '/attendance', label: 'Attendance', icon: '📊' },
     { href: '/quiz', label: 'Quiz', icon: '🧠' },
     { href: '/assistant', label: 'AI Assistant', icon: '🤖' },
+    { href: '/help', label: 'Help', icon: '❓' },
   ];
+
 
   const handleLogout = async () => {
     await logout();
